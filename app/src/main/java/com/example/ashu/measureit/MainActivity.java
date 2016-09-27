@@ -28,7 +28,9 @@ import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
+import android.widget.Switch;
 import android.widget.TextView;
 
 
@@ -61,7 +63,7 @@ public class MainActivity extends Activity {
     boolean bmRotate = false;
     static final float SCALE_ASPECT_RATIO = (float)(85.60/53.98);
     static final float SCALE_LENGTH = (float)(85.60);
-    static float BABY_LENGTH = (float)6;
+    static int BABY_LENGTH = (int)6;
 
     int SET_STATUS = 0;
 
@@ -247,6 +249,8 @@ public class MainActivity extends Activity {
         final TextView bltext = (TextView)findViewById(R.id.bl_text);
         final TextView bwtexthint = (TextView)findViewById(R.id.bwtexthint);
         final EditText bwtext = (EditText)findViewById(R.id.bwtext);
+        final TextView genderHint = (TextView)findViewById(R.id.genderhint);
+        final RadioGroup genderSwitch = (RadioGroup) findViewById(R.id.genderswitch);
 
         final Button setButton;
         setButton = (Button)findViewById(R.id.set_button);
@@ -279,16 +283,18 @@ public class MainActivity extends Activity {
 
                             RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                                     ViewGroup.LayoutParams.WRAP_CONTENT);
-                            p.addRule(RelativeLayout.BELOW, R.id.bwtext);
-
+                            p.addRule(RelativeLayout.BELOW, R.id.genderswitch);
+                            p.addRule(RelativeLayout.CENTER_HORIZONTAL);
                             rectview.setVisibility(View.GONE);
                             bltexthint.setVisibility(View.VISIBLE);
                             bltext.setVisibility(View.VISIBLE);
-                            bltext.setText(String.format("%f cm", BABY_LENGTH));
+                            bltext.setText(String.format("%d cm", BABY_LENGTH));
                             bwtexthint.setVisibility(View.VISIBLE);
                             bwtext.setVisibility(View.VISIBLE);
                             setButton.setText("Calcualte Chart");
                             setButton.setLayoutParams(p);
+                            genderHint.setVisibility(View.VISIBLE);
+                            genderSwitch.setVisibility(View.VISIBLE);
                         }
                     }
                 }
