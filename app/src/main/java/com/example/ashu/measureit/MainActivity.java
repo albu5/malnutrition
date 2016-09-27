@@ -8,6 +8,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 
+import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Environment;
@@ -23,6 +24,7 @@ import android.view.MotionEvent;
 import android.view.View;
 
 import android.view.ViewGroup;
+import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -43,7 +45,7 @@ import android.provider.DocumentsContract;
 import android.content.ContentUris;
 
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     Button cameraButton;
     Button galleryButton;
     ImageView mImageView;
@@ -56,8 +58,9 @@ public class MainActivity extends AppCompatActivity {
     PointF scaleStartPoint;
     PointF scaleEndPoint;
 
-    static final float SCALE_ASPECT_RATIO = (float)4/3;
-    static final float SCALE_LENGTH = (float)6;
+    boolean bmRotate = false;
+    static final float SCALE_ASPECT_RATIO = (float)(85.60/53.98);
+    static final float SCALE_LENGTH = (float)(85.60);
     static float BABY_LENGTH = (float)6;
 
     int SET_STATUS = 0;
@@ -159,21 +162,50 @@ public class MainActivity extends AppCompatActivity {
         BitmapFactory.Options bmOptions = new BitmapFactory.Options();
         bmOptions.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
+
+        int photoW;
+        int photoH;
+        float scaleFactor;
+
+        if (bmOptions.outHeight>bmOptions.outWidth){
+            photoW = bmOptions.outWidth;
+            photoH = bmOptions.outHeight;
+            scaleFactor = Math.max(((float)photoW/targetW), ((float)photoH/targetH));
+        }
+        else{
+            photoH = bmOptions.outWidth;
+            photoW = bmOptions.outHeight;
+            scaleFactor = Math.max(((float)photoW/targetW), ((float)photoH/targetH));
+            bmRotate = true;
+        }
+
 
         // Determine how much to scale down the image
         //int scaleFactor = Math.min(photoH/targetW, photoW/targetH);
-        int scaleFactor = Math.max(Math.round((float)photoH/targetW), Math.round((float)photoW/targetH));
+        //int scaleFactor = Math.max(Math.round((float)photoH/targetW), Math.round((float)photoW/targetH));
         // Decode the image file into a Bitmap sized to fill the View
         bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scaleFactor;
-        bmOptions.inPurgeable = true;
+        //bmOptions.inSampleSize = scaleFactor;
+        bmOptions.inMutable = true;
 
         bitmapImg = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
+
+        if (bmRotate){
+            bitmapImg = RotateBitmap(bitmapImg, 90, 1/scaleFactor);
+        }
+        else{
+            bitmapImg = RotateBitmap(bitmapImg, 0, 1/scaleFactor);
+        }
         mImageView.setImageBitmap(bitmapImg);
 
         switchToSet();
+    }
+    public static Bitmap RotateBitmap(Bitmap source, float angle, float resizeScale)
+    {
+        Matrix matrix = new Matrix();
+        matrix.postRotate(angle);
+        matrix.setScale(resizeScale, resizeScale);
+        return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
     public void switchToSet(){
@@ -241,7 +273,9 @@ public class MainActivity extends AppCompatActivity {
                             float hb = Math.abs(babyStartPoint.y - babyEndPoint.y);
                             float wb = Math.abs(babyStartPoint.x - babyEndPoint.x);
                             float relh = SCALE_ASPECT_RATIO * (float) Math.sqrt((double) hs * ws / SCALE_ASPECT_RATIO);
-                            BABY_LENGTH = Math.round((hb/relh)* SCALE_LENGTH);
+
+                            BABY_LENGTH = Math.round((Math.max(wb,hb)/relh)*SCALE_LENGTH);
+
 
                             RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
                                     ViewGroup.LayoutParams.WRAP_CONTENT);
