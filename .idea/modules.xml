@@ -4,6 +4,7 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
       <module fileurl="file://$PROJECT_DIR$/malnutrition.iml" filepath="$PROJECT_DIR$/malnutrition.iml" />
+      <module fileurl="file://$PROJECT_DIR$/openCVLibrary2482/openCVLibrary2482.iml" filepath="$PROJECT_DIR$/openCVLibrary2482/openCVLibrary2482.iml" />
     </modules>
   </component>
 </project>

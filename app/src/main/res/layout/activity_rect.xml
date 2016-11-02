@@ -2,123 +2,226 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:paddingBottom="0dp"
     android:paddingLeft="0dp"
     android:paddingRight="0dp"
     android:paddingTop="0dp"
-    android:paddingBottom="0dp"
     tools:context=".MainActivity">
 
     <com.example.ashu.measureit.rectView
-        android:layout_width="match_parent"
         android:id="@+id/rect_view"
+        android:layout_width="match_parent"
+        android:layout_height="540dp"
         android:layout_centerHorizontal="true"
-        android:visibility="visible"
         android:layout_marginBottom="0dp"
-        android:layout_height="540dp">
+        android:visibility="visible">
     </com.example.ashu.measureit.rectView>
 
-    <TextView
-        android:layout_width="220dp"
+    <RelativeLayout
+        android:id="@+id/hintwrapper"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="36dp"
-        android:text="Baby Length: "
-        android:id="@+id/bltexthint"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentLeft="true"
-        android:layout_marginBottom="32dp"
-        android:visibility="gone"/>
+        android:visibility="gone">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:textSize="32dp"
-        android:text="Enter baby weight"
-        android:id="@+id/bwtexthint"
-        android:layout_below="@+id/bl_text"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginBottom="8dp"
-        android:layout_alignParentEnd="false"
-        android:layout_alignParentRight="false"
-        android:visibility="gone"/>
+        <EditText
+            android:id="@+id/bl_text"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:gravity="center"
+            android:inputType="number"
+            android:text="100"
+            android:textSize="24sp" />
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:inputType="numberDecimal"
-        android:textSize="36dp"
-        android:ems="10"
-        android:id="@+id/bwtext"
-        android:layout_below="@+id/bwtexthint"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        <TextView
+            android:id="@+id/bltexthint"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/bl_text"
+            android:layout_alignParentTop="true"
+            android:gravity="center"
+            android:text="Enter Length in cm:"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/bwtexthint"
+            android:layout_width="300dp"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@+id/bwtext"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignTop="@+id/bwtext"
+            android:layout_below="@+id/bl_text"
+            android:gravity="center"
+            android:text="Enter Weight in kg:"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/bwtext"
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:layout_below="@+id/bl_text"
+            android:layout_marginBottom="16dp"
+            android:ems="10"
+            android:gravity="center"
+            android:text="0"
+            android:inputType="numberDecimal"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/genderhint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/bwtext"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="Select Baby's Gender:"
+            android:textSize="24sp" />
+
+        <RadioGroup
+            android:id="@+id/genderswitch"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/genderhint"
+            android:layout_marginBottom="16dp"
+            android:weightSum="1">
+
+            <RadioButton
+                android:id="@+id/radioButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:checked="false"
+                android:text="Male"
+                android:textSize="24sp" />
+
+            <RadioButton
+                android:id="@+id/radioButton2"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_weight="0.13"
+                android:checked="false"
+                android:text="Female"
+                android:textSize="24sp" />
+        </RadioGroup>
+
+        <TextView
+            android:id="@+id/agehint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_below="@+id/genderswitch"
+            android:layout_marginBottom="8dp"
+            android:text="Enter Baby's Age:"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/agemonth"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/agehint"
+            android:layout_centerHorizontal="true"
+            android:layout_marginBottom="0dp"
+            android:ems="10"
+            android:gravity="center"
+            android:text="0"
+            android:inputType="number"
+            android:textSize="24sp" />
+
+        <EditText
+            android:id="@+id/ageyear"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/agehint"
+            android:layout_marginBottom="0dp"
+            android:layout_toLeftOf="@id/agemonth"
+            android:layout_toStartOf="@+id/agemonth"
+            android:ems="10"
+            android:gravity="center"
+            android:text="0"
+            android:inputType="number"
+            android:textSize="24sp" />
+
+
+        <EditText
+            android:id="@+id/ageweek"
+            android:layout_width="80dp"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/agehint"
+            android:layout_marginBottom="0dp"
+            android:layout_toEndOf="@+id/agemonth"
+            android:layout_toRightOf="@+id/agemonth"
+            android:ems="10"
+            android:gravity="center"
+            android:text="0"
+            android:inputType="number"
+            android:textSize="24sp" />
+
+        <TextView
+            android:id="@+id/yearhint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/ageyear"
+            android:layout_alignRight="@+id/ageyear"
+            android:layout_below="@+id/ageyear"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="Years"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/monthhint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/agemonth"
+            android:layout_alignRight="@+id/agemonth"
+            android:layout_below="@+id/agemonth"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="Months"
+            android:textSize="18sp" />
+
+        <TextView
+            android:id="@+id/weekhint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignLeft="@+id/ageweek"
+            android:layout_alignRight="@+id/ageweek"
+            android:layout_below="@+id/ageweek"
+            android:layout_marginBottom="8dp"
+            android:gravity="center"
+            android:text="Weeks"
+            android:textSize="18sp" />
+    </RelativeLayout>
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph_weight"
+        android:layout_width="fill_parent"
+        android:layout_height="240dip"
+        android:visibility="gone" />
+
+    <com.jjoe64.graphview.GraphView
+        android:id="@+id/graph_height"
+        android:layout_width="fill_parent"
+        android:layout_height="240dip"
+        android:layout_below="@+id/graph_weight"
         android:layout_marginBottom="32dp"
-        android:visibility="gone"/>
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
 
     <Button
+        android:id="@+id/set_button"
         android:layout_width="256dp"
         android:layout_height="wrap_content"
-        android:text="Set Baby"
-        android:id="@+id/set_button"
         android:layout_below="@+id/rect_view"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="0dp"/>
-
-    <TextView
-        android:layout_width="140dp"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:textSize="36dp"
-        android:text="100 cm"
-        android:id="@+id/bl_text"
-        android:visibility="gone"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_marginBottom="32dp"
-        android:layout_alignParentEnd="true" />
-
-    <TextView
-        android:text="Select Baby's Gender:"
-        android:textSize="32dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/bwtext"
-        android:layout_centerHorizontal="true"
-        android:visibility="gone"
-        android:layout_marginBottom="8dp"
-        android:id="@+id/genderhint" />
-
-    <RadioGroup
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/genderhint"
-        android:layout_marginTop="8dp"
-        android:layout_marginBottom="32dp"
-        android:weightSum="1"
-        android:visibility="gone"
-        android:id="@+id/genderswitch">
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Male"
-            android:id="@+id/radioButton"
-            android:layout_gravity="center_horizontal"
-            android:checked="false"
-            android:textSize="25dp" />
-
-        <RadioButton
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Female"
-            android:id="@+id/radioButton2"
-            android:layout_gravity="center_horizontal"
-            android:checked="false"
-            android:textSize="25dp"
-            android:layout_weight="0.13" />
-    </RadioGroup>
-
+        android:layout_marginTop="0dp"
+        android:text="Set Baby" />
 
 </RelativeLayout>

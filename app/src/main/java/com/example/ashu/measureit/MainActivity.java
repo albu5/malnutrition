@@ -3,48 +3,59 @@ package com.example.ashu.measureit;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Intent;
+import com.example.ashu.CSVFile;
+import java.util.List;
+import java.io.InputStream;
+
+import java.util.Iterator;
+import java.io.IOException;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.series.DataPoint;
+import com.jjoe64.graphview.series.LineGraphSeries;
 
+import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.PointF;
 import android.net.Uri;
 import android.os.Environment;
-import android.os.Looper;
-import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.v4.content.FileProvider;
 import android.os.Bundle;
+import com.example.ashu.measureit.R;
 
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import android.view.ViewGroup;
-import android.view.animation.RotateAnimation;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.RadioGroup;
 import android.widget.RelativeLayout;
-import android.widget.Switch;
 import android.widget.TextView;
 
 
 import java.io.File;
-import java.io.IOException;
-import java.text.Format;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.concurrent.RunnableFuture;
+import java.util.Locale;
+
 import android.content.Context;
 import android.os.Build;
 import android.database.Cursor;
 import android.provider.DocumentsContract;
 import android.content.ContentUris;
+
+import org.opencv.android.OpenCVLoader;
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.android.Utils;
 
 
 public class MainActivity extends Activity {
@@ -54,6 +65,7 @@ public class MainActivity extends Activity {
     String mCurrentPhotoPath;
     Uri mPhotoUri;
     static Bitmap bitmapImg;
+    static Bitmap bitmapScale;
 
     PointF babyStartPoint;
     PointF babyEndPoint;
@@ -61,9 +73,14 @@ public class MainActivity extends Activity {
     PointF scaleEndPoint;
 
     boolean bmRotate = false;
-    static final float SCALE_ASPECT_RATIO = (float)(85.60/53.98);
-    static final float SCALE_LENGTH = (float)(85.60);
-    static int BABY_LENGTH = (int)6;
+    static final float SCALE_ASPECT_RATIO = (float) (85.60 / 53.98);
+    static final float SCALE_LENGTH = (float) (85.60);
+    static int BABY_LENGTH = (int) 6;
+    static int AGE_YEARS = (int) 0;
+    static int AGE_MONTHS = (int) 0;
+    static int AGE_WEEKS = (int) 0;
+    static double BABY_WEIGHT = (float) 0;
+
 
     int SET_STATUS = 0;
 
@@ -74,13 +91,23 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
+
         super.onCreate(savedInstanceState);
+
+        if (!OpenCVLoader.initDebug()) {
+            Log.e(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), not working.");
+        } else {
+            Log.d(this.getClass().getSimpleName(), "  OpenCVLoader.initDebug(), working.");
+        }
+
         setContentView(R.layout.activity_main);
 
+        //System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
-        cameraButton = (Button)findViewById(R.id.buttonCamera);
-        galleryButton = (Button)findViewById(R.id.buttonGallery);
-        mImageView = (ImageView)findViewById(R.id.image_view);
+        cameraButton = (Button) findViewById(R.id.buttonCamera);
+        galleryButton = (Button) findViewById(R.id.buttonGallery);
+        mImageView = (ImageView) findViewById(R.id.image_view);
 
         cameraButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -123,12 +150,11 @@ public class MainActivity extends Activity {
         }
     }
 
-    private void galleryIntent()
-    {
+    private void galleryIntent() {
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);//
-        startActivityForResult(Intent.createChooser(intent, "Select File"),REQUEST_GET_PHOTO);
+        startActivityForResult(Intent.createChooser(intent, "Select File"), REQUEST_GET_PHOTO);
     }
 
     private File createImageFile() throws IOException {
@@ -169,15 +195,14 @@ public class MainActivity extends Activity {
         int photoH;
         float scaleFactor;
 
-        if (bmOptions.outHeight>bmOptions.outWidth){
+        if (bmOptions.outHeight > bmOptions.outWidth) {
             photoW = bmOptions.outWidth;
             photoH = bmOptions.outHeight;
-            scaleFactor = Math.max(((float)photoW/targetW), ((float)photoH/targetH));
-        }
-        else{
+            scaleFactor = Math.max(((float) photoW / targetW), ((float) photoH / targetH));
+        } else {
             photoH = bmOptions.outWidth;
             photoW = bmOptions.outHeight;
-            scaleFactor = Math.max(((float)photoW/targetW), ((float)photoH/targetH));
+            scaleFactor = Math.max(((float) photoW / targetW), ((float) photoH / targetH));
             bmRotate = true;
         }
 
@@ -192,33 +217,32 @@ public class MainActivity extends Activity {
 
         bitmapImg = BitmapFactory.decodeFile(mCurrentPhotoPath, bmOptions);
 
-        if (bmRotate){
-            bitmapImg = RotateBitmap(bitmapImg, 90, 1/scaleFactor);
-        }
-        else{
-            bitmapImg = RotateBitmap(bitmapImg, 0, 1/scaleFactor);
+        if (bmRotate) {
+            bitmapImg = RotateBitmap(bitmapImg, 90, 1 / scaleFactor);
+        } else {
+            bitmapImg = RotateBitmap(bitmapImg, 0, 1 / scaleFactor);
         }
         mImageView.setImageBitmap(bitmapImg);
 
         switchToSet();
     }
-    public static Bitmap RotateBitmap(Bitmap source, float angle, float resizeScale)
-    {
+
+    public static Bitmap RotateBitmap(Bitmap source, float angle, float resizeScale) {
         Matrix matrix = new Matrix();
         matrix.postRotate(angle);
         matrix.setScale(resizeScale, resizeScale);
         return Bitmap.createBitmap(source, 0, 0, source.getWidth(), source.getHeight(), matrix, true);
     }
 
-    public void switchToSet(){
+    public void switchToSet() {
         setContentView(R.layout.activity_rect);
 
         final rectView rectview;
-        rectview = (rectView)findViewById(R.id.rect_view);
-        rectview.setOnTouchListener(new View.OnTouchListener(){
+        rectview = (rectView) findViewById(R.id.rect_view);
+        rectview.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 Log.w("Touch", "Worked");
-                switch(event.getAction()) {
+                switch (event.getAction()) {
                     case MotionEvent.ACTION_DOWN:
                         rectview.drawRectangle = true; // Start drawing the rectangle
                         rectview.beginCoordinate.x = event.getX();
@@ -236,7 +260,7 @@ public class MainActivity extends Activity {
                         // Do something with the beginCoordinate and endCoordinate, like creating the 'final' object
                         rectview.drawRectangle = true; // Stop drawing the rectangle
                         rectview.invalidate(); // Tell View that the canvas needs to be redrawn
-                        if (SET_STATUS == 1){
+                        if (SET_STATUS == 1) {
                             SET_STATUS = 2;
                         }
                         break;
@@ -245,16 +269,21 @@ public class MainActivity extends Activity {
             }
         });
 
-        final TextView bltexthint = (TextView)findViewById(R.id.bltexthint);
-        final TextView bltext = (TextView)findViewById(R.id.bl_text);
-        final TextView bwtexthint = (TextView)findViewById(R.id.bwtexthint);
-        final EditText bwtext = (EditText)findViewById(R.id.bwtext);
-        final TextView genderHint = (TextView)findViewById(R.id.genderhint);
+        final TextView bltexthint = (TextView) findViewById(R.id.bltexthint);
+        final EditText bltext = (EditText) findViewById(R.id.bl_text);
+        final TextView bwtexthint = (TextView) findViewById(R.id.bwtexthint);
+        final EditText bwtext = (EditText) findViewById(R.id.bwtext);
+        final TextView genderHint = (TextView) findViewById(R.id.genderhint);
         final RadioGroup genderSwitch = (RadioGroup) findViewById(R.id.genderswitch);
+        final RelativeLayout wrapperLayout = (RelativeLayout)findViewById(R.id.hintwrapper);
+        final EditText ageyear = (EditText) findViewById(R.id.ageyear);
+        final EditText agemonth = (EditText) findViewById(R.id.agemonth);
+        final EditText ageweek = (EditText) findViewById(R.id.ageweek);
+
 
         final Button setButton;
-        setButton = (Button)findViewById(R.id.set_button);
-        setButton.setOnTouchListener(new View.OnTouchListener(){
+        setButton = (Button) findViewById(R.id.set_button);
+        setButton.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 Log.w("SET Touch", "Worked");
                 if (SET_STATUS == 0) {
@@ -264,38 +293,337 @@ public class MainActivity extends Activity {
                     rectview.invalidate();
                     rectview.drawRectangle = false;
                     SET_STATUS = 1;
-                } else {
-                    if (SET_STATUS == 2) {
-                        scaleStartPoint = new PointF(rectview.beginCoordinate.x, rectview.beginCoordinate.y);
-                        scaleEndPoint = new PointF(rectview.endCoordinate.x, rectview.endCoordinate.y);
+                }
+                if (SET_STATUS == 2) {
+                    scaleStartPoint = new PointF(rectview.beginCoordinate.x, rectview.beginCoordinate.y);
+                    scaleEndPoint = new PointF(rectview.endCoordinate.x, rectview.endCoordinate.y);
 
-                        float hs = Math.abs(scaleStartPoint.y - scaleEndPoint.y);
-                        float ws = Math.abs(scaleStartPoint.x - scaleEndPoint.x);
+                    float hs = Math.abs(scaleStartPoint.y - scaleEndPoint.y);
+                    float ws = Math.abs(scaleStartPoint.x - scaleEndPoint.x);
 
-                        boolean validScale = hs*ws>100;
-                        if (validScale) {
-                            float hb = Math.abs(babyStartPoint.y - babyEndPoint.y);
-                            float wb = Math.abs(babyStartPoint.x - babyEndPoint.x);
-                            float relh = SCALE_ASPECT_RATIO * (float) Math.sqrt((double) hs * ws / SCALE_ASPECT_RATIO);
+                    boolean validScale = hs * ws > 100;
+                    if (validScale) {
 
-                            BABY_LENGTH = Math.round((Math.max(wb,hb)/relh)*SCALE_LENGTH);
+                        float hb = Math.abs(babyStartPoint.y - babyEndPoint.y);
+                        float wb = Math.abs(babyStartPoint.x - babyEndPoint.x);
 
+                        bitmapScale = Bitmap.createBitmap(bitmapImg,
+                                Math.round(scaleStartPoint.x),
+                                Math.round(scaleStartPoint.y),
+                                Math.round(ws),
+                                Math.round(hs));
 
-                            RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT);
-                            p.addRule(RelativeLayout.BELOW, R.id.genderswitch);
-                            p.addRule(RelativeLayout.CENTER_HORIZONTAL);
-                            rectview.setVisibility(View.GONE);
-                            bltexthint.setVisibility(View.VISIBLE);
-                            bltext.setVisibility(View.VISIBLE);
-                            bltext.setText(String.format("%d cm", BABY_LENGTH));
-                            bwtexthint.setVisibility(View.VISIBLE);
-                            bwtext.setVisibility(View.VISIBLE);
-                            setButton.setText("Calcualte Chart");
-                            setButton.setLayoutParams(p);
-                            genderHint.setVisibility(View.VISIBLE);
-                            genderSwitch.setVisibility(View.VISIBLE);
+                        Mat scaleMat = new Mat();
+                        Utils.bitmapToMat(bitmapScale.copy(Bitmap.Config.ARGB_8888, true), scaleMat);
+
+                        double[] ctheta = new double[4];
+                        double[] crho = new double[4];
+                        float[] boundaries;
+                        boundaries = getScaleBoundaries(scaleMat);
+                        for (int i = 0; i < 4; i++) {
+                            ctheta[i] = (double) boundaries[2 * i + 1];
+                            crho[i] = (double) boundaries[2 * i + 0];
+                            System.out.format("%f, %f\n", ctheta[i], crho[i]);
                         }
+
+                        double[] xint = new double[4];
+                        double[] yint = new double[4];
+
+                        int counter = 0;
+                        if (Math.abs(ctheta[0] - ctheta[1]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[1]) * crho[0] - Math.sin(ctheta[0]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[0]));
+                            yint[counter] = (-Math.cos(ctheta[1]) * crho[0] + Math.cos(ctheta[0]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[0]));
+                            counter = counter + 1;
+                        }
+
+                        if (Math.abs(ctheta[0] - ctheta[2]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[2]) * crho[0] - Math.sin(ctheta[0]) * crho[2]) / (Math.sin(ctheta[2] - ctheta[0]));
+                            yint[counter] = (-Math.cos(ctheta[2]) * crho[0] + Math.cos(ctheta[0]) * crho[2]) / (Math.sin(ctheta[2] - ctheta[0]));
+                            counter = counter + 1;
+                        }
+                        if (Math.abs(ctheta[0] - ctheta[3]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[3]) * crho[0] - Math.sin(ctheta[0]) * crho[3]) / (Math.sin(ctheta[3] - ctheta[0]));
+                            yint[counter] = (-Math.cos(ctheta[3]) * crho[0] + Math.cos(ctheta[0]) * crho[3]) / (Math.sin(ctheta[3] - ctheta[0]));
+                            counter = counter + 1;
+                        }
+                        if (Math.abs(ctheta[2] - ctheta[1]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[1]) * crho[2] - Math.sin(ctheta[2]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[2]));
+                            yint[counter] = (-Math.cos(ctheta[1]) * crho[2] + Math.cos(ctheta[2]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[2]));
+                            counter = counter + 1;
+                        }
+                        if (Math.abs(ctheta[3] - ctheta[1]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[1]) * crho[3] - Math.sin(ctheta[3]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[3]));
+                            yint[counter] = (-Math.cos(ctheta[1]) * crho[3] + Math.cos(ctheta[3]) * crho[1]) / (Math.sin(ctheta[1] - ctheta[3]));
+                            counter = counter + 1;
+                        }
+                        if (Math.abs(ctheta[3] - ctheta[2]) > Math.PI / 4) {
+                            xint[counter] = (Math.sin(ctheta[2]) * crho[3] - Math.sin(ctheta[3]) * crho[2]) / (Math.sin(ctheta[2] - ctheta[3]));
+                            yint[counter] = (-Math.cos(ctheta[2]) * crho[3] + Math.cos(ctheta[3]) * crho[2]) / (Math.sin(ctheta[2] - ctheta[3]));
+                        }
+
+                        System.out.format("%d INTERSECTIONS\n", counter + 1);
+                        for (int i = 0; i < 4; i++) {
+                            System.out.format("%f, %f\n", xint[i], yint[i]);
+                        }
+                        double a1 = areaTriangle(xint[1], yint[1], xint[2], yint[2], xint[3], yint[3]);
+                        double a2 = areaTriangle(xint[0], yint[0], xint[2], yint[2], xint[3], yint[3]);
+                        double a3 = areaTriangle(xint[1], yint[1], xint[0], yint[0], xint[3], yint[3]);
+                        double a4 = areaTriangle(xint[1], yint[1], xint[2], yint[2], xint[0], yint[0]);
+                        double area1 = (a1 + a2 + a3 + a4) / 2;
+
+                        float relh = ((float) Math.sqrt(area1 * SCALE_ASPECT_RATIO)) / ((float) 1.41);
+                        //float relh =  ((float) Math.sqrt(ws*hs * SCALE_ASPECT_RATIO));
+
+
+                        BABY_LENGTH = Math.round((Math.max(wb, hb) / relh) * SCALE_LENGTH);
+
+
+                        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT);
+                        p.addRule(RelativeLayout.BELOW, R.id.hintwrapper);
+                        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                        rectview.setVisibility(View.GONE);
+                        bltext.setText(String.format(Locale.getDefault(), "%d", BABY_LENGTH));
+                        setButton.setText("Calcualte Chart");
+                        setButton.setLayoutParams(p);
+                        /*
+                        genderHint.setVisibility(View.VISIBLE);
+                        genderSwitch.setVisibility(View.VISIBLE);
+                        bwtexthint.setVisibility(View.VISIBLE);
+                        bwtext.setVisibility(View.VISIBLE);
+                        bltexthint.setVisibility(View.VISIBLE);
+                        bltext.setVisibility(View.VISIBLE);
+                        */
+                        wrapperLayout.setVisibility(View.VISIBLE);
+
+                        SET_STATUS = 3;
+                    } else {
+                        SET_STATUS = 1;
+                    }
+                } else if (SET_STATUS == 3) {
+                    SET_STATUS = 4;
+                } else if (SET_STATUS == 4) {
+                    try {
+                        BABY_WEIGHT = Double.parseDouble(bwtext.getText().toString());
+                        BABY_LENGTH = Integer.parseInt(bltext.getText().toString());
+                        AGE_YEARS = Integer.parseInt(ageyear.getText().toString());
+                        AGE_MONTHS = Integer.parseInt(agemonth.getText().toString());
+                        AGE_WEEKS = Integer.parseInt(ageweek.getText().toString());
+
+                        double totalDays = (double) AGE_YEARS * 365.0 + (double) AGE_MONTHS * 30.4 + (double) AGE_WEEKS * 7.0;
+
+                        GraphView weightGraph = (GraphView) findViewById(R.id.graph_weight);
+                        GraphView heightGraph = (GraphView) findViewById(R.id.graph_height);
+
+                        InputStream wfaBoys = getResources().openRawResource(R.raw.wfaboys);
+                        InputStream wfaGirls = getResources().openRawResource(R.raw.wfagirls);
+
+                        CSVFile csvFile = new CSVFile(wfaBoys);
+                        List<String[]> scoreList = csvFile.read();
+                        int wfa_boys_days[] = new int[scoreList.size()];
+                        double wfa_boys_SD0[] = new double[scoreList.size()];
+                        double wfa_boys_SD1[] = new double[scoreList.size()];
+                        double wfa_boys_SD2[] = new double[scoreList.size()];
+                        double wfa_boys_SD3[] = new double[scoreList.size()];
+                        double wfa_boys_SD4[] = new double[scoreList.size()];
+                        double wfa_boys_SD1neg[] = new double[scoreList.size()];
+                        double wfa_boys_SD2neg[] = new double[scoreList.size()];
+                        double wfa_boys_SD3neg[] = new double[scoreList.size()];
+                        double wfa_boys_SD4neg[] = new double[scoreList.size()];
+
+                        Iterator<String[]> it = scoreList.iterator();
+                        int j = 0;
+                        while (it.hasNext()) {
+                            String[] row = it.next();
+                            wfa_boys_days[j] = (int) (Double.parseDouble(row[0]));
+                            wfa_boys_SD0[j] = (Double.parseDouble(row[1]));
+                            wfa_boys_SD1[j] = (Double.parseDouble(row[2]));
+                            wfa_boys_SD2[j] = (Double.parseDouble(row[3]));
+                            wfa_boys_SD3[j] = (Double.parseDouble(row[4]));
+                            wfa_boys_SD4[j] = (Double.parseDouble(row[5]));
+                            wfa_boys_SD1neg[j] = (Double.parseDouble(row[6]));
+                            wfa_boys_SD2neg[j] = (Double.parseDouble(row[7]));
+                            wfa_boys_SD3neg[j] = (Double.parseDouble(row[8]));
+                            wfa_boys_SD4neg[j] = (Double.parseDouble(row[9]));
+                            j = j + 1;
+                        }
+                        int WFA_BOYS_SIZE = j;
+                        WFA_BOYS_SIZE = 100;
+
+                        weightGraph.getViewport().setYAxisBoundsManual(true);
+                        weightGraph.getViewport().setMinY(2);
+                        weightGraph.getViewport().setMaxY(10);
+
+                        weightGraph.getViewport().setXAxisBoundsManual(true);
+                        weightGraph.getViewport().setMinX(0);
+                        weightGraph.getViewport().setMaxX(WFA_BOYS_SIZE);
+
+                        weightGraph.getViewport().setScalable(true);
+                        weightGraph.getViewport().setScalableY(true);
+
+                        DataPoint[] points = new DataPoint[WFA_BOYS_SIZE];
+
+                        for (int i = 0; i < WFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(wfa_boys_days[i], wfa_boys_SD0[i]);
+                        }
+                        LineGraphSeries<DataPoint> SD0 = new LineGraphSeries<>(points);
+                        SD0.setColor(Color.GREEN);
+                        weightGraph.addSeries(SD0);
+
+                        for (int i = 0; i < WFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(wfa_boys_days[i], wfa_boys_SD1[i]);
+                        }
+                        LineGraphSeries<DataPoint> SD1 = new LineGraphSeries<>(points);
+                        SD1.setColor(Color.RED);
+                        weightGraph.addSeries(SD1);
+
+                        for (int i = 0; i < WFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(wfa_boys_days[i], wfa_boys_SD2[i]);
+                        }
+                        LineGraphSeries<DataPoint> SD2 = new LineGraphSeries<>(points);
+                        SD2.setColor(Color.BLACK);
+                        weightGraph.addSeries(SD2);
+
+                        for (int i = 0; i < WFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(wfa_boys_days[i], wfa_boys_SD1neg[i]);
+                        }
+                        LineGraphSeries<DataPoint> SD1neg = new LineGraphSeries<>(points);
+                        SD1neg.setColor(Color.RED);
+                        weightGraph.addSeries(SD1neg);
+
+                        for (int i = 0; i < WFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(wfa_boys_days[i], wfa_boys_SD2neg[i]);
+                        }
+                        LineGraphSeries<DataPoint> SD2neg = new LineGraphSeries<>(points);
+                        SD2neg.setColor(Color.BLACK);
+                        weightGraph.addSeries(SD2neg);
+
+                        DataPoint[] wfa_baby_data = new DataPoint[1];
+                        wfa_baby_data[0] = new DataPoint(totalDays, BABY_WEIGHT);
+                        LineGraphSeries<DataPoint> wfa_baby = new LineGraphSeries<>(wfa_baby_data);
+                        wfa_baby.setColor(Color.BLUE);
+                        wfa_baby.setDrawDataPoints(true);
+                        wfa_baby.setDataPointsRadius(10);
+                        weightGraph.addSeries(wfa_baby);
+
+                        //graph.getViewport().setBackgroundColor(Color.WHITE);
+                        weightGraph.setVisibility(View.VISIBLE);
+
+                        //Height plot
+                        InputStream lfaBoys = getResources().openRawResource(R.raw.lfaboys);
+                        InputStream lfaGirls = getResources().openRawResource(R.raw.lfagirls);
+
+                        CSVFile csvFile2 = new CSVFile(lfaBoys);
+                        List<String[]> scoreList2 = csvFile2.read();
+                        int lfa_boys_days[] = new int[scoreList2.size()];
+                        double lfa_boys_SD0[] = new double[scoreList2.size()];
+                        double lfa_boys_SD1[] = new double[scoreList2.size()];
+                        double lfa_boys_SD2[] = new double[scoreList2.size()];
+                        double lfa_boys_SD3[] = new double[scoreList2.size()];
+                        double lfa_boys_SD4[] = new double[scoreList2.size()];
+                        double lfa_boys_SD1neg[] = new double[scoreList2.size()];
+                        double lfa_boys_SD2neg[] = new double[scoreList2.size()];
+                        double lfa_boys_SD3neg[] = new double[scoreList2.size()];
+                        double lfa_boys_SD4neg[] = new double[scoreList2.size()];
+
+                        Iterator<String[]> it2 = scoreList2.iterator();
+                        j = 0;
+                        while (it2.hasNext()) {
+                            String[] row = it2.next();
+                            lfa_boys_days[j] = (int) (Double.parseDouble(row[0]));
+                            lfa_boys_SD0[j] = (Double.parseDouble(row[1]));
+                            lfa_boys_SD1[j] = (Double.parseDouble(row[2]));
+                            lfa_boys_SD2[j] = (Double.parseDouble(row[3]));
+                            lfa_boys_SD3[j] = (Double.parseDouble(row[4]));
+                            lfa_boys_SD4[j] = (Double.parseDouble(row[5]));
+                            lfa_boys_SD1neg[j] = (Double.parseDouble(row[6]));
+                            lfa_boys_SD2neg[j] = (Double.parseDouble(row[7]));
+                            lfa_boys_SD3neg[j] = (Double.parseDouble(row[8]));
+                            lfa_boys_SD4neg[j] = (Double.parseDouble(row[9]));
+                            j = j + 1;
+                        }
+                        int LFA_BOYS_SIZE = j;
+                        LFA_BOYS_SIZE = 100;
+
+                        heightGraph.getViewport().setYAxisBoundsManual(true);
+                        heightGraph.getViewport().setMinY(40);
+                        heightGraph.getViewport().setMaxY(80);
+
+                        heightGraph.getViewport().setXAxisBoundsManual(true);
+                        heightGraph.getViewport().setMinX(0);
+                        heightGraph.getViewport().setMaxX(LFA_BOYS_SIZE);
+
+                        heightGraph.getViewport().setScalable(true);
+                        heightGraph.getViewport().setScalableY(true);
+
+                        points = new DataPoint[LFA_BOYS_SIZE];
+
+                        for (int i = 0; i < LFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(lfa_boys_days[i], lfa_boys_SD0[i]);
+                        }
+                        SD0 = new LineGraphSeries<>(points);
+                        SD0.setColor(Color.GREEN);
+                        heightGraph.addSeries(SD0);
+
+                        for (int i = 0; i < LFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(lfa_boys_days[i], lfa_boys_SD1[i]);
+                        }
+                        SD1 = new LineGraphSeries<>(points);
+                        SD1.setColor(Color.RED);
+                        heightGraph.addSeries(SD1);
+
+                        for (int i = 0; i < LFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(lfa_boys_days[i], lfa_boys_SD2[i]);
+                        }
+                        SD2 = new LineGraphSeries<>(points);
+                        SD2.setColor(Color.BLACK);
+                        heightGraph.addSeries(SD2);
+
+                        for (int i = 0; i < LFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(lfa_boys_days[i], lfa_boys_SD1neg[i]);
+                        }
+                        SD1neg = new LineGraphSeries<>(points);
+                        SD1neg.setColor(Color.RED);
+                        heightGraph.addSeries(SD1neg);
+
+                        for (int i = 0; i < LFA_BOYS_SIZE; i++) {
+                            points[i] = new DataPoint(lfa_boys_days[i], lfa_boys_SD2neg[i]);
+                        }
+                        SD2neg = new LineGraphSeries<>(points);
+                        SD2neg.setColor(Color.BLACK);
+                        heightGraph.addSeries(SD2neg);
+
+                        DataPoint[] lfa_baby_data = new DataPoint[1];
+                        lfa_baby_data[0] = new DataPoint(totalDays, BABY_LENGTH);
+                        LineGraphSeries<DataPoint> lfa_baby = new LineGraphSeries<>(lfa_baby_data);
+                        lfa_baby.setColor(Color.BLUE);
+                        lfa_baby.setDrawDataPoints(true);
+                        lfa_baby.setDataPointsRadius(10);
+                        heightGraph.addSeries(lfa_baby);
+
+                        //graph.getViewport().setBackgroundColor(Color.WHITE);
+                        heightGraph.setVisibility(View.VISIBLE);
+
+                        RelativeLayout.LayoutParams p = new RelativeLayout.LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+                                ViewGroup.LayoutParams.WRAP_CONTENT);
+                        p.addRule(RelativeLayout.BELOW, R.id.graph_height);
+                        p.addRule(RelativeLayout.CENTER_HORIZONTAL);
+
+                        setButton.setLayoutParams(p);
+                        setButton.setText("GRAPH");
+
+                    /*
+                    bwtexthint.setVisibility(View.GONE);
+                    bwtext.setVisibility(View.GONE);
+                    genderHint.setVisibility(View.GONE);
+                    genderSwitch.setVisibility(View.GONE);
+                    bltexthint.setVisibility(View.GONE);
+                    bltext.setVisibility(View.GONE);
+                    */
+                        wrapperLayout.setVisibility(View.GONE);
+                    }
+                    catch (NumberFormatException e){
+                        SET_STATUS = 3;
                     }
                 }
                 return true;
@@ -371,7 +699,7 @@ public class MainActivity extends Activity {
                 }
 
                 final String selection = "_id=?";
-                final String[] selectionArgs = new String[] {
+                final String[] selectionArgs = new String[]{
                         split[1]
                 };
 
@@ -394,9 +722,9 @@ public class MainActivity extends Activity {
      * Get the value of the data column for this Uri. This is useful for
      * MediaStore Uris, and other file-based ContentProviders.
      *
-     * @param context The context.
-     * @param uri The Uri to query.
-     * @param selection (Optional) Filter used in the query.
+     * @param context       The context.
+     * @param uri           The Uri to query.
+     * @param selection     (Optional) Filter used in the query.
      * @param selectionArgs (Optional) Selection arguments used in the query.
      * @return The value of the _data column, which is typically a file path.
      */
@@ -448,12 +776,161 @@ public class MainActivity extends Activity {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
+    public static double areaTriangle(double x1, double y1, double x2, double y2, double x3, double y3) {
+        double a = Math.abs(x1 * y2 - x1 * y3 + y1 * x3 - y1 * x2 + x2 * y3 - y2 * x3);
+        return a;
+    }
+
+    private static float[] getScaleBoundaries(Mat image) {
+        // get edges
+        Mat edges = new Mat();
+        Imgproc.Canny(image, edges, 20, 150, 3, true);
+
+        // get lines
+        Mat lines = new Mat();
+        Imgproc.HoughLines(edges, lines, 1, 0.001, 50);
+        lines.convertTo(lines, CvType.CV_32FC2);
+        float[] theta = new float[lines.cols() / 2];
+        float[] rho = new float[lines.cols() / 2];
+        float[] linedata = new float[(int) (lines.total() * lines.channels())];
+        double pi = Math.PI;
+
+        lines.get(0, 0, linedata);
+
+        for (int i = 0; i < (lines.cols() / 2); i++) {
+            theta[i] = linedata[2 * i + 1];
+            rho[i] = linedata[2 * i + 0];
+        }
+
+        int t1 = 0;
+        int t2 = 0;
+        float theta1 = 0;
+        float theta2 = 0;
+        float rho1 = 0;
+        float rho2 = 0;
+
+        int idx = 0;
+        float[] ctheta = new float[4];
+        float[] crho = new float[4];
+
+        for (int i = 0; i < theta.length; i++) {
+            theta[i] = (theta[i] <= 0.75 * (float) Math.PI) ? theta[i] : -theta[i] + (float) Math.PI;
+        }
+
+        for (int i = 0; i < theta.length; i++) {
+
+            if (t1 == 0) {
+                theta1 = theta[i];
+                rho1 = rho[i];
+                t1 = 1;
+
+                ctheta[idx] = theta[i];
+                crho[idx] = rho[i];
+                idx = idx + 1;
+            } else if (t1 == 1 && t2 == 0) {
+                if (Math.abs(theta1 - theta[i]) > 4 * pi / 10) {
+                    t2 = 1;
+                    theta2 = theta[i];
+                    rho2 = rho[i];
+
+                    ctheta[idx] = theta[i];
+                    crho[idx] = rho[i];
+                    idx = idx + 1;
+                } else if (Math.abs(rho[i] - rho1) > 20) {
+                    t1 = 2;
+
+                    ctheta[idx] = theta[i];
+                    crho[idx] = rho[i];
+                    idx = idx + 1;
+                } else {
+                    continue;
+                }
+            } else if (t1 == 2 && t2 == 0) {
+                if (Math.abs(theta[i] - theta1) > 4 * pi / 10) {
+                    t2 = 1;
+                    theta2 = theta[i];
+                    rho2 = rho[i];
+
+                    ctheta[idx] = theta[i];
+                    crho[idx] = rho[i];
+                    idx = idx + 1;
+                } else {
+                    continue;
+                }
+            } else if (t1 == 1 && t2 == 1) {
+                if (Math.abs(theta1 - theta[i]) > 4 * pi / 10) {
+                    if (Math.abs(rho2 - rho[i]) > 20) {
+                        t2 = 2;
+
+                        ctheta[idx] = theta[i];
+                        crho[idx] = rho[i];
+                        idx = idx + 1;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    if (Math.abs(rho1 - rho[i]) > 20) {
+                        t1 = 2;
+
+                        ctheta[idx] = theta[i];
+                        crho[idx] = rho[i];
+                        idx = idx + 1;
+                    } else {
+                        continue;
+                    }
+                }
+            } else if (t1 == 1 && t1 == 2) {
+                if (Math.abs(theta1 - theta[i]) < pi / 10) {
+                    if (Math.abs(rho1 - rho[i]) > 20) {
+                        t1 = 2;
+
+                        ctheta[idx] = theta[i];
+                        crho[idx] = rho[i];
+                        idx = idx + 1;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+            } else if (t1 == 2 && t2 == 1) {
+                if (Math.abs(theta1 - theta[i]) > 4 * pi / 10) {
+                    if (Math.abs(rho2 - rho[i]) > 20) {
+                        t2 = 2;
+
+                        ctheta[idx] = theta[i];
+                        crho[idx] = rho[i];
+                        idx = idx + 1;
+                    } else {
+                        continue;
+                    }
+                } else {
+                    continue;
+                }
+            } else {
+                break;
+            }
+        }
+
+        float[] boundaries = new float[8];
+        for (int i = 0; i < 4; i++) {
+            boundaries[2 * i + 1] = ctheta[i];
+            boundaries[2 * i + 0] = crho[i];
+        }
+        return boundaries;
+    }
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
     }
 
-    public static Bitmap getBitmapImg(){
+    @Override
+    public void onResume() {
+        super.onResume();
+    }
+
+    public static Bitmap getBitmapImg() {
         return bitmapImg;
     }
 }
