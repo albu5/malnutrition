@@ -1,3 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<items version="2" />
+<items version="2" >
 
+    <item
+        is-multidex="true"
+        jar="C:\Users\asd\Desktop\ctara\malnutrition\app\build\intermediates\incremental-runtime-classes\debug\instant-run.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="c82741bc129dd5f99f11a4ab8666ae24262053b6">
+        <dex dex="C:\Users\asd\Desktop\ctara\malnutrition\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run_35cf8e8713ab96375d6438e54ec97eaed452f34f\classes.dex" />
+    </item>
+    <item
+        is-multidex="true"
+        jar="C:\Users\asd\Desktop\ctara\malnutrition\app\build\intermediates\incremental-classes\debug\instant-run-bootstrap.jar"
+        jumboMode="true"
+        optimize="true"
+        revision="25.0.2"
+        sha1="c2bd8573dfccb982bbfa01340157b5f2bfe54a2c">
+        <dex dex="C:\Users\asd\Desktop\ctara\malnutrition\app\build\intermediates\transforms\dex\debug\folders\1000\10000\instant-run-bootstrap_f926bbac0c53fa7512b66a2e9a465a4256487ecd\classes.dex" />
+    </item>
+
+</items>

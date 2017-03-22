@@ -1,0 +1,52 @@
+FATAL EXCEPTION: main
+                                                                             Process: com.ctara.iitb.malnutrition, PID: 24681
+                                                                             java.lang.IllegalArgumentException: x + width must be <= bitmap.width()
+                                                                                 at android.graphics.Bitmap.createBitmap(Bitmap.java:760)
+                                                                                 at android.graphics.Bitmap.createBitmap(Bitmap.java:727)
+                                                                                 at com.ctara.iitb.malnutrition.MainActivity$4.onTouch(MainActivity.java:319)
+                                                                                 at android.view.View.dispatchTouchEvent(View.java:9938)
+                                                                                 at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2672)
+                                                                                 at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2301)
+                                                                                 at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2672)
+                                                                                 at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2301)
+                                                                                 at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2672)
+                                                                                 at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2301)
+                                                                                 at android.view.ViewGroup.dispatchTransformedTouchEvent(ViewGroup.java:2672)
+                                                                                 at android.view.ViewGroup.dispatchTouchEvent(ViewGroup.java:2301)
+                                                                                 at com.android.internal.policy.DecorView.superDispatchTouchEvent(DecorView.java:411)
+                                                                                 at com.android.internal.policy.PhoneWindow.superDispatchTouchEvent(PhoneWindow.java:1810)
+                                                                                 at android.app.Activity.dispatchTouchEvent(Activity.java:3065)
+                                                                                 at com.android.internal.policy.DecorView.dispatchTouchEvent(DecorView.java:373)
+                                                                                 at android.view.View.dispatchPointerEvent(View.java:10162)
+                                                                                 at android.view.ViewRootImpl$ViewPostImeInputStage.processPointerEvent(ViewRootImpl.java:4446)
+                                                                                 at android.view.ViewRootImpl$ViewPostImeInputStage.onProcess(ViewRootImpl.java:4314)
+                                                                                 at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:3861)
+                                                                                 at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:3914)
+                                                                                 at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:3880)
+                                                                                 at android.view.ViewRootImpl$AsyncInputStage.forward(ViewRootImpl.java:4007)
+                                                                                 at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:3888)
+                                                                                 at android.view.ViewRootImpl$AsyncInputStage.apply(ViewRootImpl.java:4064)
+                                                                                 at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:3861)
+                                                                                 at android.view.ViewRootImpl$InputStage.onDeliverToNext(ViewRootImpl.java:3914)
+                                                                                 at android.view.ViewRootImpl$InputStage.forward(ViewRootImpl.java:3880)
+                                                                                 at android.view.ViewRootImpl$InputStage.apply(ViewRootImpl.java:3888)
+                                                                                 at android.view.ViewRootImpl$InputStage.deliver(ViewRootImpl.java:3861)
+                                                                                 at android.view.ViewRootImpl.deliverInputEvent(ViewRootImpl.java:6257)
+                                                                                 at android.view.ViewRootImpl.doProcessInputEvents(ViewRootImpl.java:6196)
+                                                                                 at android.view.ViewRootImpl.enqueueInputEvent(ViewRootImpl.java:6157)
+                                                                                 at android.view.ViewRootImpl$WindowInputEventReceiver.onInputEvent(ViewRootImpl.java:6360)
+                                                                                 at android.view.InputEventReceiver.dispatchInputEvent(InputEventReceiver.java:192)
+                                                                                 at android.os.MessageQueue.nativePollOnce(Native Method)
+                                                                                 at android.os.MessageQueue.next(MessageQueue.java:323)
+                                                                                 at android.os.Looper.loop(Looper.java:136)
+                                                                                 at android.app.ActivityThread.main(ActivityThread.java:6123)
+                                                                                 at java.lang.reflect.Method.invoke(Native Method)
+                                                                                 at com.android.internal.os.ZygoteInit$MethodAndArgsCaller.run(ZygoteInit.java:867)
+                                                                                 at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:757)
+
+
+
+
+
+
+

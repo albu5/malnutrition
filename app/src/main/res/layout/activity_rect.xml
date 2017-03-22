@@ -8,14 +8,14 @@
     android:paddingTop="0dp"
     tools:context=".MainActivity">
 
-    <com.example.ashu.measureit.rectView
+    <com.ctara.iitb.malnutrition.rectView
         android:id="@+id/rect_view"
-        android:layout_width="match_parent"
-        android:layout_height="540dp"
+        android:layout_width="306dp"
+        android:layout_height="544dp"
+        android:layout_below="@+id/hintwrapper"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="0dp"
-        android:visibility="visible">
-    </com.example.ashu.measureit.rectView>
+        android:scaleType="matrix"
+        android:visibility="visible"></com.ctara.iitb.malnutrition.rectView>
 
     <RelativeLayout
         android:id="@+id/hintwrapper"
@@ -43,7 +43,7 @@
             android:layout_alignBottom="@+id/bl_text"
             android:layout_alignParentTop="true"
             android:gravity="center"
-            android:text="Enter Length in cm:"
+            android:text="Enter Length in mm:"
             android:textSize="24sp" />
 
         <TextView

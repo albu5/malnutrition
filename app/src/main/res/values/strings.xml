@@ -6,4 +6,7 @@
     <string name="title_activity_fullscreen">FullscreenActivity</string>
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="set_scale">Set Scale</string>
+    <string name="calc_chart">Calcualte Chart</string>
+    <string name="graph">GRAPH</string>
 </resources>

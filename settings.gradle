@@ -1,2 +1,2 @@
-include ':app'
-include ':openCVLibrary2482'
+include ':app', ':GraphView'
+include ':openCVLibrary2411'
